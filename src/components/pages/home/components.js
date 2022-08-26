@@ -1,30 +1,32 @@
 import styled from 'styled-components';
 
-export const Wrapper = styled.div`
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+export const FiltersBlock = styled.div`
+  display: flex;
+  align-items: center;
   gap: 20px;
   width: 100%;
-
-  @media (max-width: 1499px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 1199px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 899px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  padding: 20px 0;
 
   @media (max-width: 599px) {
-    grid-template-columns: 1fr;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 0 0 20px;
   }
 `;
 
-export const Column = styled.div`
+export const GamesBlock = styled.div`
+  width: 100%;
+  padding-bottom: 30px;
+
+  & > .infinite-scroll {
+    width: 100%;
+  }
+`;
+
+export const LoadMoreBlock = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  justify-content: center;
+  width: 100%;
+  padding: 30px;
 `;

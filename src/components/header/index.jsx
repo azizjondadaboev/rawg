@@ -1,10 +1,14 @@
-import { Wrapper } from './components';
-import { ContainerWide } from '../ui/common';
+import { LogoLink, Wrapper } from './components';
+import { ContainerWide, FlexBox } from '../ui/common';
 
 const Header = () => {
   return (
     <Wrapper>
-      <ContainerWide>Header</ContainerWide>
+      <ContainerWide>
+        <FlexBox alignItems="center" height="100px">
+          <LogoLink href="/">RAWG</LogoLink>
+        </FlexBox>
+      </ContainerWide>
     </Wrapper>
   );
 };

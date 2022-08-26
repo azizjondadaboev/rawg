@@ -10,15 +10,18 @@ const Home = ({ games, platforms }) => {
   );
 };
 
-export const getServerSideProps = async () => {
-  const games = await getGamesList();
-  const platformsPage1 = await getPlatforms(1);
-  const platformsPage2 = await getPlatforms(2);
+export const getServerSideProps = async context => {
+  const query = context.query;
+  const games = await getGamesList({
+    ordering: query?.ordering || '-added',
+    search: query?.search || '',
+  });
+  const platforms = await getPlatforms();
 
   return {
     props: {
-      games: games.results,
-      platforms: [...platformsPage1.results, ...platformsPage2.results],
+      games: games,
+      platforms: platforms.results,
     },
   };
 };

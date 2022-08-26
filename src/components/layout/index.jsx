@@ -1,8 +1,7 @@
 import Head from 'next/head';
 
 import { Wrapper } from './components';
-// import Header from '../header';
-// import Footer from '../footer';
+import Header from '../header';
 
 const Layout = ({ children, title }) => {
   return (
@@ -14,12 +13,10 @@ const Layout = ({ children, title }) => {
           <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         </Head>
 
-        {/* <Header /> */}
+        <Header />
 
         <main>{children}</main>
       </Wrapper>
-
-      {/* <Footer /> */}
     </>
   );
 };

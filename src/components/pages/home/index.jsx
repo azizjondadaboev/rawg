@@ -1,55 +1,147 @@
-import { useLayoutEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { getGamesListByFilters } from '../../../api';
+import GamesGrid from '../../gamesGrid';
 import { ContainerWide } from '../../ui/common';
-import { Column, Wrapper } from './components';
-import GameItem from './gameItem';
+import LoadingCircle from '../../ui/loadingCircle';
+import { FiltersBlock, GamesBlock, LoadMoreBlock } from './components';
+import OrderingDropdown from './orderingDropdown';
+import PlatformsDropdown from './platformsDropdown';
+import SearchInput from './searchInput';
 
 const HomeComponents = ({ games, platforms }) => {
-  const [gamesArray, setGamesArray] = useState(games);
-  const [screenWidth, setScreenWidth] = useState(0);
+  const router = useRouter();
+  const queries = router.query;
 
-  useLayoutEffect(() => {
-    const updateSize = () => {
-      setScreenWidth(window.innerWidth);
-    };
-    window.addEventListener('resize', updateSize);
-    updateSize();
+  const [gamesArray, setGamesArray] = useState(games.results);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(queries.search || '');
+  const [ordering, setOrdering] = useState(queries.ordering || '-added');
+  const [platform, setPlatform] = useState(queries.platform || '');
+  const [loading, setLoading] = useState(false);
 
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
+  const loadNextPage = newPage => {
+    setPage(newPage);
+    getGamesListByFilters({ page: newPage, ordering }).then(response => {
+      setGamesArray(prev => [...prev, ...response.results]);
+    });
+  };
 
-  const renderGames = () => {
-    let columns = 1;
-    switch (true) {
-      case screenWidth >= 1500:
-        columns = 5;
-        break;
-      case screenWidth >= 1200 && screenWidth < 1500:
-        columns = 4;
-        break;
-      case screenWidth >= 900 && screenWidth < 1200:
-        columns = 3;
-        break;
-      case screenWidth >= 600 && screenWidth < 900:
-        columns = 2;
-        break;
-    }
+  const handleSubmitSearch = () => {
+    setPage(1);
+    setLoading(true);
 
-    let columnsGames = [];
+    const params = new URLSearchParams({
+      ...queries,
+      search,
+    }).toString();
 
-    for (let i = 0; i < gamesArray.length; i += columns) {
-      for (let j = 0; j < columns; j++) {
-        columnsGames[j] = columnsGames[j] ? [...columnsGames[j], games[i + j]] : [games[i + j]];
-      }
-    }
+    router.push(`${router.pathname}?${params}`, `${router.pathname}?${params}`, { shallow: true });
 
-    return columnsGames.map((column, index) => (
-      <Column key={index}>{column.map(game => (game ? <GameItem key={game.id} game={game} /> : null))}</Column>
-    ));
+    const filters = platform
+      ? {
+          page: 1,
+          ordering,
+          search,
+          parent_platforms: platform,
+        }
+      : { page: 1, ordering, search };
+
+    getGamesListByFilters(filters).then(response => {
+      setGamesArray(response.results);
+      setLoading(false);
+    });
+  };
+
+  const handleChangeOrdering = order => {
+    setOrdering(order);
+    setPage(1);
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      ...queries,
+      ordering: order,
+    }).toString();
+
+    router.push(`${router.pathname}?${params}`, `${router.pathname}?${params}`, { shallow: true });
+
+    const filters = platform
+      ? {
+          page: 1,
+          ordering: order,
+          search,
+          parent_platforms: platform,
+        }
+      : { page: 1, ordering: order, search };
+
+    getGamesListByFilters(filters).then(response => {
+      setGamesArray(response.results);
+      setLoading(false);
+    });
+  };
+
+  const handleChangePlatform = platform => {
+    setPlatform(platform);
+    setPage(1);
+    setLoading(true);
+
+    const query = queries;
+    delete query['platform'];
+
+    const queryParams = platform
+      ? {
+          ...query,
+          platform,
+        }
+      : query;
+    const params = new URLSearchParams(queryParams).toString();
+
+    router.push(`${router.pathname}?${params}`, `${router.pathname}?${params}`, { shallow: true });
+
+    const filters = platform
+      ? {
+          page: 1,
+          ordering,
+          search,
+          parent_platforms: platform,
+        }
+      : { page: 1, ordering, search };
+
+    getGamesListByFilters(filters).then(response => {
+      setGamesArray(response.results);
+      setLoading(false);
+    });
   };
 
   return (
-    <ContainerWide>
-      <Wrapper>{renderGames()}</Wrapper>
+    <ContainerWide className="wrap">
+      <FiltersBlock>
+        <SearchInput value={search} onChange={setSearch} onSubmit={handleSubmitSearch} />
+        <OrderingDropdown ordering={ordering} changeOrdering={handleChangeOrdering} />
+        <PlatformsDropdown platforms={platforms} selectedPlatform={platform} changePlatform={handleChangePlatform} />
+      </FiltersBlock>
+      <GamesBlock>
+        {loading ? (
+          <LoadMoreBlock>
+            <LoadingCircle size={32} />
+          </LoadMoreBlock>
+        ) : (
+          <InfiniteScroll
+            next={() => loadNextPage(page + 1)}
+            dataLength={gamesArray.length}
+            hasMore={gamesArray.length < games.count}
+            className="infinite-scroll"
+            loader={
+              <LoadMoreBlock>
+                <LoadingCircle size={32} />
+              </LoadMoreBlock>
+            }
+          >
+            <GamesGrid games={gamesArray} />
+          </InfiniteScroll>
+        )}
+      </GamesBlock>
     </ContainerWide>
   );
 };

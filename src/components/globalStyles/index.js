@@ -63,13 +63,12 @@ const GlobalStyles = createGlobalStyle`
         margin: 0;
     }
 
-    .slick-slide {
-        backface-visibility: hidden;
-        -webkit-font-smoothing: subpixel-antialiased;
+    .image-gallery.fullscreen-modal {
+        z-index: 100;
     }
-    
-    .slick-track {
-        margin-left: 0 !important;
+
+    .image-gallery-icon:focus {
+        outline: none;
     }
 `;
 
